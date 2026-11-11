@@ -1,0 +1,853 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Answer Sheet Checker</title>
+
+<style>
+:root{
+  --navy:#172554;
+  --blue:#2563eb;
+  --blue2:#1d4ed8;
+  --bg:#f3f6fc;
+  --card:#fff;
+  --text:#172033;
+  --muted:#64748b;
+  --line:#e2e8f0;
+  --green:#15803d;
+  --amber:#b45309;
+  --red:#dc2626;
+  --shadow:0 8px 28px rgba(15,23,42,.06)
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif
+}
+header{
+  background:linear-gradient(120deg,#172554,#1e40af);
+  color:white;padding:22px max(18px,calc((100% - 1180px)/2))
+}
+.brand{display:flex;align-items:center;gap:13px}
+.brand-icon{
+  width:46px;height:46px;border-radius:14px;background:#ffffff20;
+  display:grid;place-items:center;font-size:24px
+}
+header h1{font-size:clamp(18px,3vw,25px);margin:0;font-weight:750}
+header p{margin:5px 0 0;color:#dbeafe;font-size:13px}
+nav{
+  display:flex;gap:8px;padding:12px max(16px,calc((100% - 1180px)/2));
+  background:#fff;border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:5;overflow-x:auto
+}
+nav button{
+  white-space:nowrap;border:0;border-radius:9px;padding:10px 15px;
+  background:#f1f5f9;color:#475569;font:inherit;font-size:13px;
+  font-weight:600;cursor:pointer
+}
+nav button.on{background:#1e40af;color:white}
+main{max-width:1180px;margin:25px auto;padding:0 18px 50px}
+section{display:none}
+section.on{display:block}
+.page-heading{margin:0 0 18px}
+.page-heading h2{font-size:22px;margin:0 0 5px}
+.page-heading p{margin:0;color:var(--muted);font-size:14px}
+.panel,.card{
+  background:var(--card);border:1px solid var(--line);
+  border-radius:15px;padding:20px;margin:14px 0;box-shadow:var(--shadow)
+}
+.panel h3,.card h3{margin:0 0 14px;font-size:17px}
+label{
+  display:block;font-size:13px;font-weight:650;color:#334155;
+  margin:12px 0 5px
+}
+input,select,textarea{
+  width:100%;padding:11px 12px;border:1px solid #cbd5e1;
+  border-radius:9px;background:#fff;color:var(--text);
+  font:inherit;font-size:14px;margin:4px 0 10px;outline:none
+}
+input:focus,select:focus,textarea:focus{
+  border-color:#60a5fa;box-shadow:0 0 0 3px #dbeafe
+}
+textarea{min-height:145px;resize:vertical}
+.help{font-size:12px;color:var(--muted);margin:-4px 0 10px}
+button{font-family:inherit}
+.act{
+  border:0;border-radius:9px;padding:10px 15px;
+  background:var(--blue);color:white;font-weight:650;
+  font-size:13px;cursor:pointer;margin:5px 6px 5px 0;transition:.15s
+}
+.act:hover{background:var(--blue2);transform:translateY(-1px)}
+.act.secondary{background:#475569}
+.act.warning{background:#b45309}
+.act.green{background:#15803d}
+.act:disabled{opacity:.6;cursor:wait;transform:none}
+.grid{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px
+}
+.stat{
+  background:#fff;border:1px solid var(--line);
+  border-radius:14px;padding:17px;box-shadow:var(--shadow)
+}
+.stat .stat-label{font-size:12px;color:var(--muted);font-weight:600}
+.stat strong{display:block;font-size:26px;margin-top:7px;letter-spacing:-.5px}
+.stat small{color:var(--muted);font-size:11px}
+.marks{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;margin:15px 0
+}
+.mark-box{
+  background:#f8fafc;border:1px solid var(--line);
+  padding:13px;border-radius:11px;min-width:0
+}
+.mark-box span{display:block;color:var(--muted);font-size:11px;font-weight:650}
+.mark-box b{
+  display:block;font-size:20px;margin-top:6px;overflow-wrap:anywhere
+}
+.muted{color:var(--muted);font-size:13px}
+.success{color:var(--green)}
+.error{color:var(--red)}
+.tag{
+  display:inline-block;background:#eff6ff;color:#1d4ed8;
+  padding:4px 9px;border-radius:20px;font-size:11px;font-weight:700
+}
+.status{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0 14px}
+details{
+  border:1px solid var(--line);border-radius:10px;
+  padding:11px 13px;margin:10px 0;background:#fff
+}
+summary{cursor:pointer;font-weight:650;font-size:13px;color:#334155}
+.question{border-bottom:1px solid #eef2f7;padding:12px 0}
+.question:last-child{border-bottom:0}
+.question p{margin:7px 0 0;line-height:1.55}
+pre{
+  white-space:pre-wrap;overflow-wrap:anywhere;background:#f8fafc;
+  padding:12px;border-radius:8px;font-size:12px
+}
+.history-item{
+  border-left:3px solid #2563eb;padding:11px 13px;
+  margin:12px 0;background:#f8fafc;border-radius:0 9px 9px 0
+}
+.chart{
+  padding:13px;background:#f8fafc;border:1px solid var(--line);
+  border-radius:11px;margin:12px 0
+}
+.track{height:10px;background:#e2e8f0;border-radius:20px;overflow:hidden}
+.fill{height:100%;border-radius:20px}
+.fill.blue{background:#3b82f6}
+.empty{
+  padding:25px;text-align:center;color:var(--muted);
+  background:#fff;border:1px dashed #cbd5e1;border-radius:13px
+}
+.message{margin-top:10px;font-size:13px;min-height:18px}
+.upload-box{
+  border:1.5px dashed #93c5fd;border-radius:12px;
+  padding:16px;background:#f8fbff
+}
+.footer{text-align:center;color:#94a3b8;font-size:11px;padding:20px}
+@media(max-width:850px){
+  .grid,.marks{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:560px){
+  header{padding:17px}
+  .brand-icon{width:40px;height:40px}
+  main{padding:0 12px 35px;margin:17px auto}
+  .panel,.card{padding:15px}
+  .grid{gap:9px}
+  .stat{padding:13px}
+  .stat strong{font-size:22px}
+  .marks{gap:8px}
+  .mark-box{padding:10px}
+  .mark-box b{font-size:18px}
+  nav{padding:10px 12px}
+}
+</style>
+</head>
+
+<body>
+<header>
+  <div class="brand">
+    <div class="brand-icon">🎓</div>
+    <div>
+      <h1>AI Answer Sheet Checker</h1>
+      <p>AI-Powered Exam Evaluation, Rechecking & Teacher Review</p>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <button class="on" data-t="dashboard">Dashboard</button>
+  <button data-t="exam">Create Exam</button>
+  <button data-t="submit">Upload Answer Sheet</button>
+  <button data-t="results">Results & Rechecking</button>
+</nav>
+
+<main>
+<section id="dashboard" class="on">
+  <div class="page-heading">
+    <h2>Dashboard</h2>
+    <p>System overview and recent checking activity.</p>
+  </div>
+
+  <div class="grid">
+    <div class="stat">
+      <span class="stat-label">Total Submissions</span>
+      <strong id="statSubmissions">—</strong>
+      <small>Uploaded answer sheets</small>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Total Exams</span>
+      <strong id="statExams">—</strong>
+      <small>Created exams</small>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Teacher Overrides</span>
+      <strong id="statOverrides">—</strong>
+      <small>Manually reviewed submissions</small>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Average Marks</span>
+      <strong id="statAverage">—</strong>
+      <small>Based on final results</small>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>Welcome</h3>
+    <p class="muted">
+      Start by creating an exam, uploading a student's answer sheet,
+      and reviewing AI-generated marks. Teachers can recheck answers
+      and save final marks.
+    </p>
+    <button class="act" onclick="goTo('exam')">＋ Create Exam</button>
+    <button class="act secondary" onclick="goTo('submit')">Upload Answer Sheet</button>
+    <button class="act secondary" onclick="goTo('results')">View Results</button>
+  </div>
+
+  <div class="page-heading">
+    <h2>Recent Submissions</h2>
+    <p>Latest saved checking records.</p>
+  </div>
+  <div id="recentList" class="empty">Loading dashboard data...</div>
+</section>
+
+<section id="exam">
+  <div class="page-heading">
+    <h2>Create New Exam</h2>
+    <p>Add exam details, correct answers, and marks for each question.</p>
+  </div>
+
+  <div class="panel">
+    <label for="title">Exam Name</label>
+    <input id="title" placeholder="Example: Database Systems Midterm">
+
+    <label for="qs">Questions (one per line: Question | Correct Answer | Marks)</label>
+    <textarea id="qs" placeholder="What is normalization? | A process of reducing data redundancy | 5
+What is a primary key? | A unique identifier for each row | 3"></textarea>
+
+    <p class="help">
+      Enter each question on a new line. Each line must contain
+      three parts separated by the | character.
+    </p>
+
+    <button class="act" id="createExamBtn" onclick="createExam()">Save Exam</button>
+    <p id="examMsg" class="message muted"></p>
+  </div>
+</section>
+
+<section id="submit">
+  <div class="page-heading">
+    <h2>Upload Answer Sheet</h2>
+    <p>Select an exam, enter the student's name, and upload a JPG or PNG image.</p>
+  </div>
+
+  <div class="panel">
+    <label for="examSel">Select Exam</label>
+    <select id="examSel">
+      <option value="">Loading exams...</option>
+    </select>
+
+    <label for="student">Student Name</label>
+    <input id="student" placeholder="Enter student name">
+
+    <label for="file">Answer Sheet Image (JPG/PNG)</label>
+    <div class="upload-box">
+      <input type="file" id="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png">
+      <p class="help">
+        Upload a clear and readable image.
+        Supported formats: JPG, JPEG, PNG.
+      </p>
+    </div>
+
+    <button class="act" id="submitBtn" onclick="submitSheet()">Start AI Checking</button>
+    <p id="subMsg" class="message muted"></p>
+    <div id="subOut"></div>
+  </div>
+</section>
+
+<section id="results">
+  <div class="page-heading">
+    <h2>Results & Rechecking</h2>
+    <p>
+      Compare AI-generated marks, save teacher-approved final marks,
+      and review the complete history.
+    </p>
+  </div>
+
+  <div class="panel" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+    <div>
+      <b>All Student Results</b>
+      <div class="muted">Latest saved records from the database.</div>
+    </div>
+    <button class="act" onclick="loadResults()">↻ Refresh Results</button>
+  </div>
+
+  <div id="list">
+    <div class="empty">Click Refresh Results to load student results.</div>
+  </div>
+</section>
+
+<div class="footer">AI Answer Sheet Checking & Rechecking System</div>
+</main>
+
+<script>
+/* BASIC SETTINGS */
+const $ = id => document.getElementById(id);
+const API_BASE = "http://127.0.0.1:8000";
+
+/* HTML ESCAPE */
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#039;"
+  })[char]);
+}
+
+/* API REQUEST */
+async function apiRequest(url, options = {}) {
+  const fullUrl = url.startsWith("http") ? url : API_BASE + url;
+  const response = await fetch(fullUrl, options);
+  let data = {};
+
+  try {
+    data = await response.json();
+  } catch {
+    data = {};
+  }
+
+  if (!response.ok) {
+    throw new Error(data.detail || data.message || "Request failed");
+  }
+
+  return data;
+}
+
+/* NAVIGATION */
+function goTo(target) {
+  document.querySelectorAll("nav button, section")
+    .forEach(el => el.classList.remove("on"));
+
+  const button = document.querySelector(`nav button[data-t="${target}"]`);
+  if (button) button.classList.add("on");
+
+  const section = $(target);
+  if (section) section.classList.add("on");
+
+  if (target === "submit") loadExams();
+  if (target === "results") loadResults();
+  if (target === "dashboard") loadDashboard();
+}
+
+/* NAVIGATION EVENTS */
+document.querySelectorAll("nav button").forEach(button => {
+  button.addEventListener("click", () => goTo(button.dataset.t));
+});
+
+/* DASHBOARD */
+async function loadDashboard() {
+  try {
+    const [exams, submissions] = await Promise.all([
+      apiRequest("/api/exams"),
+      apiRequest("/api/submissions")
+    ]);
+
+    $("statExams").textContent = Array.isArray(exams) ? exams.length : 0;
+    $("statSubmissions").textContent = Array.isArray(submissions) ? submissions.length : 0;
+
+    const overrides = submissions.filter(s =>
+      String(s.status || "").toLowerCase().includes("override")
+    ).length;
+
+    $("statOverrides").textContent = overrides;
+
+    let average = 0;
+
+    if (submissions.length) {
+      const percentages = submissions.map(s => {
+        const total = Number(s.total || 0);
+        const max = Number(s.max_total || 0);
+        return max > 0 ? (total / max) * 100 : 0;
+      });
+
+      average = percentages.reduce((a,b) => a + b, 0) / percentages.length;
+    }
+
+    $("statAverage").textContent =
+      submissions.length ? average.toFixed(1) + "%" : "0%";
+
+    const recent = [...submissions].reverse().slice(0,5);
+
+    $("recentList").innerHTML = recent.length
+      ? recent.map(s => `
+        <div class="history-item">
+          <b>${escapeHtml(s.student_name || "Unknown Student")}</b>
+          <div class="muted">${escapeHtml(s.exam_title || "Exam")}</div>
+          <div>Marks: ${Number(s.total || 0)} / ${Number(s.max_total || 0)}</div>
+          <small>ID: ${Number(s.id)}</small>
+        </div>
+      `).join("")
+      : `<div class="empty">No submissions yet.</div>`;
+
+  } catch(error) {
+    $("recentList").innerHTML = `
+      <div class="error">Dashboard error: ${escapeHtml(error.message)}</div>
+    `;
+  }
+}
+
+/* LOAD EXAMS */
+async function loadExams() {
+  const select = $("examSel");
+
+  try {
+    const exams = await apiRequest("/api/exams");
+    select.innerHTML = '<option value="">Select an exam</option>';
+
+    exams.forEach(exam => {
+      const option = document.createElement("option");
+      option.value = exam.id;
+      option.textContent = `${exam.title} (ID: ${exam.id})`;
+      select.appendChild(option);
+    });
+
+    if (!exams.length) {
+      select.innerHTML = '<option value="">Please create an exam first</option>';
+    }
+
+  } catch(error) {
+    select.innerHTML = '<option value="">Could not load exams</option>';
+    $("subMsg").textContent = "Exam loading failed: " + error.message;
+  }
+}
+
+/* CREATE EXAM */
+async function createExam() {
+  const button = $("createExamBtn");
+  const message = $("examMsg");
+  const title = $("title").value.trim();
+  const rawQuestions = $("qs").value.trim();
+
+  message.className = "message error";
+
+  if (!title) {
+    message.textContent = "Please enter the exam name.";
+    return;
+  }
+
+  if (!rawQuestions) {
+    message.textContent = "Please enter the questions.";
+    return;
+  }
+
+  const questions = [];
+  const lines = rawQuestions.split("\n");
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    const parts = line.split("|").map(x => x.trim());
+
+    if (parts.length !== 3) {
+      message.textContent =
+        `Line ${i + 1} must contain three parts: Question | Answer | Marks`;
+      return;
+    }
+
+    const marks = Number(parts[2]);
+
+    if (!parts[0] || !parts[1] || !Number.isFinite(marks) || marks <= 0) {
+      message.textContent =
+        `Please enter a valid question, answer, and marks on line ${i + 1}.`;
+      return;
+    }
+
+    questions.push({
+      q: parts[0],
+      answer: parts[1],
+      marks: marks
+    });
+  }
+
+  if (!questions.length) {
+    message.textContent = "Please add at least one question.";
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = "Saving...";
+
+  try {
+    const result = await apiRequest("/api/exams", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({title, questions})
+    });
+
+    message.className = "message success";
+    message.textContent = `Exam successfully saved! ID: ${result.id}`;
+
+    $("title").value = "";
+    $("qs").value = "";
+
+    await loadExams();
+    await loadDashboard();
+
+  } catch(error) {
+    message.className = "message error";
+    message.textContent = "Exam save failed: " + error.message;
+
+  } finally {
+    button.disabled = false;
+    button.textContent = "Save Exam";
+  }
+}
+
+/* SUBMIT ANSWER SHEET */
+async function submitSheet() {
+  const button = $("submitBtn");
+  const message = $("subMsg");
+  const output = $("subOut");
+
+  const examId = $("examSel").value;
+  const studentName = $("student").value.trim();
+  const file = $("file").files[0];
+
+  output.innerHTML = "";
+  message.className = "message error";
+
+  if (!examId) {
+    message.textContent = "Please select an exam.";
+    return;
+  }
+
+  if (!studentName) {
+    message.textContent = "Please enter the student's name.";
+    return;
+  }
+
+  if (!file) {
+    message.textContent = "Please select an answer sheet image.";
+    return;
+  }
+
+  if (!["image/jpeg","image/png"].includes(file.type)) {
+    message.textContent = "Only JPG, JPEG, and PNG files are supported.";
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("exam_id", examId);
+  formData.append("student_name", studentName);
+  formData.append("file", file);
+
+  button.disabled = true;
+  button.textContent = "AI Checking...";
+  message.className = "message muted";
+  message.textContent = "Please wait. AI is checking the answer sheet...";
+
+  try {
+    const result = await apiRequest("/api/submit", {
+      method:"POST",
+      body:formData
+    });
+
+    message.className = "message success";
+    message.textContent = "AI checking completed successfully!";
+
+    const answers = Array.isArray(result.results) ? result.results : [];
+    const total = Number(result.total || 0);
+    const maxTotal = Number(result.max_total || 0);
+
+    const percentage = maxTotal > 0
+      ? (total / maxTotal * 100).toFixed(1)
+      : "0";
+
+    output.innerHTML = `
+      <div class="card">
+        <h3>AI Checking Result</h3>
+
+        <div class="status">
+          <span class="tag">Submission ID: ${Number(result.id)}</span>
+          <span class="tag">AI Evaluated</span>
+        </div>
+
+        <div class="marks">
+          <div class="mark-box"><span>Obtained Marks</span><b>${total}</b></div>
+          <div class="mark-box"><span>Total Marks</span><b>${maxTotal}</b></div>
+          <div class="mark-box"><span>Percentage</span><b>${percentage}%</b></div>
+          <div class="mark-box"><span>Questions Checked</span><b>${answers.length}</b></div>
+        </div>
+
+        <div class="chart">
+          <b>Performance</b>
+          <div class="track" style="margin-top:10px">
+            <div class="fill blue" style="width:${Math.min(100,Math.max(0,Number(percentage)))}%"></div>
+          </div>
+          <p class="muted">${percentage}% marks obtained</p>
+        </div>
+
+        <h3>Question-wise Feedback</h3>
+
+        ${
+          answers.length
+          ? answers.map(a => `
+            <div class="question">
+              <b>Question ${Number(a.q_no)}</b>
+              <div class="status">
+                <span class="tag">${Number(a.awarded)} / ${Number(a.max)} Marks</span>
+              </div>
+              <p>${escapeHtml(a.feedback || "No feedback available.")}</p>
+            </div>
+          `).join("")
+          : `<p class="muted">No question details available.</p>`
+        }
+
+        <details>
+          <summary>View Extracted Answer Sheet Text</summary>
+          <pre>${escapeHtml(result.extracted_text || "No extracted text.")}</pre>
+        </details>
+
+        <button class="act" onclick="goTo('results')">View All Results</button>
+      </div>
+    `;
+
+    $("student").value = "";
+    $("file").value = "";
+
+    await loadDashboard();
+
+  } catch(error) {
+    message.className = "message error";
+    message.textContent = "AI checking failed: " + error.message;
+
+  } finally {
+    button.disabled = false;
+    button.textContent = "Start AI Checking";
+  }
+}
+
+/* GET SUBMISSION RESULTS */
+function getSubmissionResults(s) {
+  let data = s.results || s.result || [];
+
+  if (typeof data === "string") {
+    try {
+      data = JSON.parse(data);
+    } catch {
+      data = [];
+    }
+  }
+
+  if (data && !Array.isArray(data)) {
+    data = data.results || [];
+  }
+
+  return Array.isArray(data) ? data : [];
+}
+
+/* LOAD ALL RESULTS */
+async function loadResults() {
+  const list = $("list");
+  list.innerHTML = '<div class="empty">Loading results...</div>';
+
+  try {
+    const submissions = await apiRequest("/api/submissions");
+
+    if (!submissions.length) {
+      list.innerHTML = '<div class="empty">No student results found.</div>';
+      return;
+    }
+
+    list.innerHTML = submissions.slice().reverse().map(s => {
+      const id = Number(s.id);
+      const total = Number(s.total || 0);
+      const max = Number(s.max_total || 0);
+
+      const percentage = max > 0
+        ? (total / max * 100).toFixed(1)
+        : "0";
+
+      const status = s.status || "AI Checked";
+      const answers = getSubmissionResults(s);
+
+      return `
+        <div class="panel">
+          <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+            <div>
+              <h3>${escapeHtml(s.student_name || "Unknown Student")}</h3>
+              <p class="muted">${escapeHtml(s.exam_title || "Exam")}</p>
+            </div>
+            <span class="tag">${escapeHtml(status)}</span>
+          </div>
+
+          <div class="marks">
+            <div class="mark-box"><span>Final Marks</span><b>${total} / ${max}</b></div>
+            <div class="mark-box"><span>Percentage</span><b>${percentage}%</b></div>
+            <div class="mark-box"><span>Submission ID</span><b>${id}</b></div>
+            <div class="mark-box"><span>Questions</span><b>${answers.length}</b></div>
+          </div>
+
+          <div class="chart">
+            <b>Performance</b>
+            <div class="track" style="margin-top:10px">
+              <div class="fill blue" style="width:${Math.min(100,Math.max(0,Number(percentage)))}%"></div>
+            </div>
+            <p class="muted">${percentage}% marks obtained</p>
+          </div>
+
+          <details>
+            <summary>View Question-wise AI Checking</summary>
+            ${
+              answers.length
+              ? answers.map(a => `
+                <div class="question">
+                  <b>Question ${Number(a.q_no)}</b>
+                  <p>Marks: ${Number(a.awarded)} / ${Number(a.max)}</p>
+                  <p class="muted">${escapeHtml(a.feedback || "No feedback available.")}</p>
+                </div>
+              `).join("")
+              : `<p class="muted">No question details available.</p>`
+            }
+          </details>
+
+          <details>
+            <summary>View Extracted Text</summary>
+            <pre>${escapeHtml(s.extracted_text || "No extracted text available.")}</pre>
+          </details>
+
+          <div style="margin-top:12px">
+            <button class="act warning" onclick="recheckSubmission(${id})">AI Recheck</button>
+            <button class="act green" onclick="overrideMarks(${id},${max},${total})">Teacher Final Marks</button>
+          </div>
+
+          <div id="resultMsg${id}" class="message muted"></div>
+        </div>
+      `;
+    }).join("");
+
+  } catch(error) {
+    list.innerHTML = `
+      <div class="empty error">
+        Results loading failed: ${escapeHtml(error.message)}
+      </div>
+    `;
+  }
+}
+
+/* AI RECHECK */
+async function recheckSubmission(id) {
+  const message = $("resultMsg" + id);
+
+  const reason = prompt(
+    "Enter the reason for AI rechecking:",
+    "Please review the answers and marks again."
+  );
+
+  if (reason === null) return;
+
+  if (!reason.trim()) {
+    alert("A rechecking reason is required.");
+    return;
+  }
+
+  message.className = "message muted";
+  message.textContent = "AI is checking the submission again...";
+
+  try {
+    const result = await apiRequest(`/api/recheck/${id}`, {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({reason:reason.trim()})
+    });
+
+    message.className = "message success";
+    message.textContent =
+      `Rechecking completed! Old marks: ${result.old_total}, New marks: ${result.new_total}`;
+
+    await loadResults();
+    await loadDashboard();
+
+  } catch(error) {
+    message.className = "message error";
+    message.textContent = "Rechecking failed: " + error.message;
+  }
+}
+
+/* TEACHER FINAL MARKS */
+async function overrideMarks(id, maxMarks, currentMarks) {
+  const message = $("resultMsg" + id);
+
+  const entered = prompt(
+    `Enter teacher-approved final marks (0 to ${maxMarks}):`,
+    String(currentMarks)
+  );
+
+  if (entered === null) return;
+
+  if (entered.trim() === "") {
+    alert("Please enter the marks.");
+    return;
+  }
+
+  const total = Number(entered);
+
+  if (!Number.isFinite(total) || total < 0 || total > maxMarks) {
+    alert(`Marks must be between 0 and ${maxMarks}.`);
+    return;
+  }
+
+  if (!confirm(`Save final marks ${total}/${maxMarks}?`)) return;
+
+  message.className = "message muted";
+  message.textContent = "Saving teacher-approved marks...";
+
+  try {
+    await apiRequest(`/api/submissions/${id}/override`, {
+      method:"PUT",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({total})
+    });
+
+    message.className = "message success";
+    message.textContent = "Teacher-approved final marks saved successfully!";
+
+    await loadResults();
+    await loadDashboard();
+
+  } catch(error) {
+    message.className = "message error";
+    message.textContent = "Saving failed: " + error.message;
+  }
+}
+
+/* INITIAL LOAD */
+loadDashboard();
+</script>
+</body>
+</html>
